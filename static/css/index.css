@@ -1,0 +1,273 @@
+/* body {
+  font-family: 'Noto Sans', sans-serif;
+} */
+
+body {
+  font-family: 'Noto Sans', sans-serif;
+  background-color: #fafafa;
+  color: #333;
+  max-width: 2200px;   /* 控制页面宽度 */
+  margin: 0 auto;      /* 居中 */
+  padding: 20px;
+  line-height: 1.6;
+}
+
+
+.footer .icon-link {
+    font-size: 25px;
+    color: #000;
+}
+
+.link-block a {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.dnerf {
+  font-variant: small-caps;
+}
+
+.hero-body{
+  padding: 3rem 1.5rem;
+}
+
+.hero {
+  background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.teaser .hero-body {
+  padding-top: 0;
+  padding-bottom: 3rem;
+}
+
+.teaser {
+  font-family: 'Google Sans', sans-serif;
+}
+
+
+/* .publication-title {
+} */
+.publication-title {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #1a73e8; 
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.publication-banner {
+  max-height: parent;
+
+}
+
+.publication-banner video {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  object-fit: fit;
+}
+
+.publication-header .hero-body {
+}
+
+.publication-title {
+    font-family: 'Google Sans', sans-serif;
+}
+
+.publication-authors {
+    font-family: 'Google Sans', sans-serif;
+}
+
+.publication-venue {
+    color: #555;
+    width: fit-content;
+    font-weight: bold;
+}
+
+.publication-awards {
+    color: #ff3860;
+    width: fit-content;
+    font-weight: bolder;
+}
+
+.publication-authors {
+}
+
+.publication-authors a {
+   color: hsl(204, 86%, 53%) !important;
+}
+
+.publication-authors a:hover {
+    text-decoration: underline;
+}
+
+.author-block {
+  display: inline-block;
+}
+
+.publication-banner img {
+}
+
+.publication-authors {
+
+}
+
+.publication-video {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%;
+
+    overflow: hidden;
+    border-radius: 10px !important;
+}
+
+.publication-video iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.publication-body img {
+}
+
+.results-carousel {
+  overflow: hidden;
+}
+
+.results-carousel .item {
+  margin: 5px;
+  overflow: hidden;
+  border: 1px solid #bbb;
+  border-radius: 10px;
+  padding: 0;
+  font-size: 0;
+}
+
+.results-carousel video {
+  margin: 0;
+}
+
+
+.interpolation-panel {
+  background: #f5f5f5;
+  border-radius: 10px;
+}
+
+.interpolation-panel .interpolation-image {
+  width: 120%;   /* 比容器还宽 */
+  max-width: 1200px; /* 限制最大宽度，避免太大 */
+  display: block;
+  margin: 0 auto; /* 居中 */
+}
+
+.overview-img {
+  width: 150%;
+  max-width: 1400px;
+  display: block;
+  margin: 0 auto;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.interpolation-video-column {
+}
+
+.interpolation-panel .slider {
+  margin: 0 !important;
+}
+
+.interpolation-panel .slider {
+  margin: 0 !important;
+}
+
+#interpolation-image-wrapper {
+  width: 100%;
+}
+#interpolation-image-wrapper img {
+  border-radius: 5px;
+}
+audio {
+  width: 100%;
+  max-width: 130px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: #f5f5f5;
+}
+
+/* table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+} */
+
+.table-wrapper {
+  display: flex;
+  justify-content: center;   /* 水平居中 */
+  margin: 0 auto;
+  padding: 0 10px;           /* 两侧加点安全间距 */
+}
+
+.table-wrapper table {
+  width: auto;               /* 不要强制100%，根据内容撑开 */
+  min-width: 80%;            /* 保持一定宽度 */
+  border-collapse: collapse;
+}
+
+.content.has-text-justified {
+  font-size: 1.4rem;
+}
+
+th, td {
+  padding: 12px 16px;
+  text-align: center;
+}
+
+td:first-child {
+  width: 45%;       /* 占据接近一半 */
+  min-width: 350px; /* 保底宽度 */
+  text-align: left;
+  white-space: normal; /* 允许歌词正常换行（避免太挤） */
+}
+
+
+th {
+  background: #e9f2ff;
+  color: #fff;
+  font-weight: 600;
+}
+
+tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+tr:hover {
+  background: #f1f5ff;
+}
+
+/* 音频播放器样式 */
+audio {
+  width: 150px;
+  height: 32px;
+  border-radius: 16px;
+  background-color: #f1f3f4;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* footer 图标 */
+.footer .icon-link {
+  font-size: 22px;
+  color: #555;
+  transition: color 0.3s;
+}

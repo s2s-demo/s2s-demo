@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="s2s: High-Quality Song Generation with Multi-Preference Alignment">
+  <meta name="keywords" content="Song generation, Music generation, Language Model, Direct Preference Optimization, Multi-Preference Alignment">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>s2s</title>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-L7749G0HJZ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-L7749G0HJZ');
+</script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-body" style="padding-bottom: 24px;">
+    <div class="container  is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">S2S: Sentence-to-Segment Learning in LLM-Driven Song Generation via Post-Hoc Chain-of-Thought</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 摘要 -->
+   <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Recent advances in song generation show significant progress, yet producing long-form, melodious songs remains challenging due to (1) high computational cost, (2) maintaining long-form coherence and controllability, and (3) limited data resources. To address these, we propose a large language model(LLM)-based framework with a novel two-stage training strategy that progresses from sentence-level to segment-level learning. This approach enables the model to first master fundamental singing ability before advancing to musicality. Segmenting full songs into sentence- and segment-level units shortens modeling sequences, thus reducing training complexity. Remarkably, using only 0.5 million training songs, our method generates melodious and coherent songs with reliable timbre consistency and text controllability. Furthermore, we introduce a post-hoc chain-of-thought(PHCoT) mechanism that enhances alignment with lyrical and timbre prompts without increasing extra inference cost. Experiments demonstrate superior musicality and timbre controllability compared to open-source baselines. Ablation studies validate the effectiveness of the post-hoc design. 
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 框架图 -->
+     <div class="container is-max-desktop is-centered has-text-centered">
+    <div class="hero-body">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <img src="./static/image/overview.png" class="overview-img"
+            alt="Interpolate start reference image." />
+          <h2 class="subtitle has-text-centered">
+            The overview of s2s.
+          </h2>
+        </div>
+      </div> 
+    </div>
+  </div>
+</section>
+
+<style>
+  /* 歌词 summary 鼠标悬停效果 */
+  details summary {
+    font-weight: bold;
+    color: #007bff;
+    cursor: pointer;
+    outline: none;
+    transition: color 0.2s, text-decoration 0.2s;
+  }
+  details summary:hover {
+    color: #0056b3;
+    text-decoration: underline;
+  }
+  details[open] summary {
+    color: #d9534f;
+  }
+  
+  /* 歌词内容美化 */
+  .lyrics-content {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    white-space: pre-line;
+    line-height: 1.6;
+    margin-top: 8px;
+    flex: 4;
+  }
+  .lyrics-section {
+    font-weight: bold;
+    color: #333;
+    margin-top: 8px;
+  }
+  
+  /* 音频列弱化 */
+  /* .audio-compare {
+  opacity: .65;
+  font-size: .95em;
+  background: #f8f9fa;
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+   */
+  .audio-compare {
+  width: 8%;          /* 缩窄 */
+  min-width: 100px;   /* 保底，避免播放器挤爆 */
+  padding: 4px 6px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  opacity: 0.75;
+  }
+
+  /* 最后一列突出 */
+  /* .audio-overview {
+  background: #fffbe6;
+  border: 2px solid var(--accent);
+  font-weight: 800;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 50%, transparent);
+  opacity: 1;
+  font-size: 1.06em;
+  border-radius: 10px;
+  padding: 8px 10px;
+  animation: s-softGlow 2.4s ease-in-out infinite alternate;
+} */
+ .audio-overview {
+  width: 10%;          /* 控制整体宽度 */
+  min-width: 120px;
+  background: #fffbe6;
+  border: 1px solid #f7d97c;
+  border-radius: 8px;
+  padding: 4px 6px;    /* 缩小内边距 */
+  box-shadow: 0 0 4px rgba(247, 217, 124, 0.5);
+  font-weight: 600;
+}
+  </style>
+
+<style>
+  .s2s-th {
+  font-weight: bold;
+  background: #f0f6ff;
+  color: #2a6ebb;
+  border-radius: 4px;
+  opacity: 1;
+}
+  </style>
+
+<section id="demo" class="hero">
+  <div class="hero-body">
+    <div class="container is-fluid">
+      <div class="columns is-centered is-gapless has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Song Generation</h2>
+        </div>
+      </div>
+      <div class="columns is-centered is-gapless has-text-centered">
+        <div class="column is-full">
+          <div class="table-wrapper">
+          <table class="table" style="width: 100%; background-color: transparent;">
+            <thead>
+              <tr>
+              <th align="center"><strong>Lyrics</strong></th>
+              <th align="center"><strong>Suno v4.5</strong></th>
+              <th align="center"><strong>Mureka O1</strong></th>
+              <th align="center"><strong>LeVo</strong></th>
+              <th align="center"><strong>DiffRhythm v1.2</strong></th>
+              <th align="center"><strong>ACE-Step</strong></th>
+              <th align="center"><strong>YuE</strong></th>
+              <th align="center" class="s2s-th"><strong>s2s(ours)</strong></th>
+            </tr>
+          </thead>
+          <tbody>
+      
+      <tr>
+        <td width="30%" style="text-align: left;"> <span class="icon"><i class="fas fa-magic"></i></span>English </td>
+      </tr>
+      <tr>
+        <td  style="text-align: left;">
+          <details>
+            <summary>Lyrics</summary>
+            <div class="lyrics-content">
+              <span class="lyrics-section">"Midnight Drive"</span>
+              <span class="lyrics-section">[Verse]</span>
+              City lights blur through the window pane
+              Memories flicker like neon rain
+              Your voice echoes on the radio
+              A whisper of what we used to know
+
+              <span class="lyrics-section">[Chorus]</span>
+              Midnight drive, chasing time
+              Your hand in mine, lost in rhyme
+              Even if the road won’t bend
+              I’d do it all again
+
+              <span class="lyrics-section">[Verse]</span>
+              Every song reminds me of your laugh
+              The night we ran without looking back
+              Now the silence feels like a scream
+              Was it real or just a dream
+
+              <span class="lyrics-section">[Chorus]</span>
+              Midnight drive, chasing time
+              Your hand in mine, lost in rhyme
+              Even if the road won’t bend
+              I’d do it all again
+
+            </div>
+          </details>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Suno\en\Suno-en-en1-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Mureka\en\Mureka-en-en1-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\levo-icassp\levo-en-en1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\diff-icassp\en\diff-en-en1-R&B-rock-Electronic-Rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\ace-step-icassp\en\en1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\yue_icassp\en\yue--en1-Classical-R&B-rock-electronic.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\en\en1.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <tr>
+        <td  style="text-align: left;">
+          <details>
+            <summary>Lyrics</summary>
+            <div class="lyrics-content">
+              <span class="lyrics-section">"Paper Hearts"</span>
+              <span class="lyrics-section">[Verse]</span>
+              We built a house out of paper hearts
+              Taped the edges, hoped it wouldn’t fall apart
+              Your smile was fire, your touch was light
+              But dreams burn fast in the dark of night
+
+              <span class="lyrics-section">[Chorus]</span>
+              Paper hearts, fragile love
+              We soared too high, not strong enough
+              Every kiss a folded lie
+              We never said goodbye
+
+              <span class="lyrics-section">[Verse]</span>
+              I kept the notes you left in drawers
+              The perfume still lingers on the floor
+              I trace the words, but they fade with time
+              Just like you from my life
+
+              <span class="lyrics-section">[Chorus]</span>
+              Paper hearts, fragile love
+              We soared too high, not strong enough
+              Every kiss a folded lie
+              We never said goodbye
+
+            </div>
+          </details>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Suno\en\Suno-en-en2-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Mureka\zh\Mureka-zh-en2-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\levo-icassp\levo-ko-en2.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\diff-icassp\en\diff-en-en2-electronic-Classical-R&B-Electronic.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\ace-step-icassp\en\en2.mp3" type="audio/wav">
+          </audio>
+        </td>
+        
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\yue_icassp\en\yue--en2-Rock-electronic-Electronic-rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\jp\en2.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <tr>
+        <td  style="text-align: left;">
+          <details>
+            <summary>Lyrics</summary>
+            <div class="lyrics-content">
+              <span class="lyrics-section">"Echoes"</span>
+              <span class="lyrics-section">[Verse]</span>
+              There’s a silence in the hall
+              Where your laughter used to fall
+              Now I walk with empty sound
+              Echoes of what we found
+
+              <span class="lyrics-section">[Chorus]</span>
+              Echoes of you in every place
+              Still feel your breath, still see your face
+              Time may pass, but doesn’t erase
+              The echoes you leave in your wake
+
+              <span class="lyrics-section">[Verse]</span>
+              I sleep on one side of the bed
+              The other cold like words unsaid
+              I turn and reach into the air
+              Hoping you’d still be there
+
+              <span class="lyrics-section">[Chorus]</span>
+              Echoes of you in every place
+              Still feel your breath, still see your face
+              Time may pass, but doesn’t erase
+              The echoes you leave in your wake
+
+            </div>
+          </details>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Suno\ko\Suno-ko-en3-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Mureka\ko\Mureka-ko-en3-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\levo-icassp\levo-ko-en3.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\diff-icassp\en\diff-en-en3-electronic-R&B-Folk-Electronic.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\ace-step-icassp\en\en3.mp3" type="audio/wav">
+          </audio>
+        </td>
+        
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\yue_icassp\en\yue--en3-Electronic-rock-R&B-Rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\ko\en3.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <tr>
+        <td  style="text-align: left;">
+          <details>
+            <summary>Lyrics</summary>
+            <div class="lyrics-content">
+              
+              <span class="lyrics-section">"Freefall"</span>
+              <span class="lyrics-section">[Verse]</span>
+              Eyes closed, I dive into the unknown
+              No parachute, no place called home
+              You pulled me into your storm
+              And I was never warned
+
+              <span class="lyrics-section">[Chorus]</span>
+              This is a freefall, no one to catch
+              Risking it all, no turning back
+              I gave you everything, heart and soul
+              You let me go
+
+              <span class="lyrics-section">[Verse]</span>
+              You whispered forever into my skin
+              But forever ends where lies begin
+              Now I’m just a name you forgot
+              Another tear you never caught
+
+              <span class="lyrics-section">[Chorus]</span>
+              This is a freefall, no one to catch
+              Risking it all, no turning back
+              I gave you everything, heart and soul
+              You let me go
+
+
+            </div>
+          </details>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Suno\zh\suno-zh-en4-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Mureka\zh\Mureka-zh-en4-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\levo-icassp\levo-zh-en4.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\diff-icassp\en\diff-en-en4-rock-Pop-electronic-Rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\ace-step-icassp\en\en4.mp3" type="audio/wav">
+          </audio>
+        </td>
+        
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\yue_icassp\en\yue--en4-rock-Electronic-Classical-R&B.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\zh\en4.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <tr>
+        <td  style="text-align: left;">
+          <details>
+            <summary>Lyrics</summary>
+            <div class="lyrics-content">
+              <span class="lyrics-section">"Stay A Little Longer"</span>
+              <span class="lyrics-section">[Verse]</span>
+              You pack your bag in the morning light
+              Try not to cry, try not to fight
+              The silence fills the space we made
+              A love we slowly let fade
+
+              <span class="lyrics-section">[Chorus]</span>
+              Stay a little longer
+              Even if it hurts
+              One more minute, one last word
+              Before we fall apart
+              Stay, just for the heart
+
+              <span class="lyrics-section">[Verse]</span>
+              I know goodbye is on your lips
+              But I still feel your fingertips
+              The way you touched me like the breeze
+              Now it’s just memories
+
+              <span class="lyrics-section">[Chorus]</span>
+              Stay a little longer
+              Even if it hurts
+              One more minute, one last word
+              Before we fall apart
+              Stay, just for the heart
+
+
+            </div>
+          </details>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Suno\jp\suno-jp-en5-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Mureka\zh\Mureka-zh-en5-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\levo-icassp\levo-zh-en5.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\diff-icassp\en\diff-en-en5-rap-Folk-R&B-Rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\ace-step-icassp\en\en5.mp3" type="audio/wav">
+          </audio>
+        </td>
+        
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\yue_icassp\en\yue--en5-electronic-Rock-Electronic-rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\en\en5.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      
+      <tr>
+        <td style="text-align: left;"> <span class="icon"><i class="fas fa-magic"></i></span>Chinese </td>
+      </tr>
+      <tr>
+        <td width="28%" style="text-align: left;">
+          <details>
+            <summary>Lyrics</summary>
+            <div class="lyrics-content">
+              <span class="lyrics-section">《星光未眠》</span>
+                <span class="lyrics-section">[Verse]</span>
+                城市霓虹泛着孤独的脸
+                我在角落写满昨日的思念
+                冷风吹走你话语的余温
+                却吹不散我眼里的泪痕
+
+                <span class="lyrics-section">[Chorus]</span>
+                星光未眠 我依然在原点
+                在梦与梦之间 找你的脸
+                时间太远 回忆太浅
+                我还记得你说过的永远
+
+                <span class="lyrics-section">[Verse]</span>
+                回头的街灯渐次熄灭
+                像你留下的温柔渐行渐远
+                每个夜晚重复这场告别
+                心碎的节奏越来越明显
+
+                <span class="lyrics-section">[Chorus]</span>
+                星光未眠 我依然在原点
+                在梦与梦之间 找你的脸
+                时间太远 回忆太浅
+                我还记得你说过的永远
+
+                <span class="lyrics-section">[Chorus]</span>
+                如果世界真的能倒退
+                我愿意重演那段心醉
+                不再让你流泪
+                星光未眠 我不再逃避眼前
+                哪怕你不再是我从前的那片天
+                泪水流干 爱却更鲜
+                你是我永恒的信念
+        </div>
+          </details>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Suno\en\Suno-en-zh1-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Mureka\zh\Mureka-zh-en1-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\levo-icassp\levo-jp-zh1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\diff-icassp\en\diff-en-zh1-Classical-R&B-rock-electronic.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\ace-step-icassp\en\zh1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\yue_icassp\en\yue--zh1-R&B-rock-Electronic-Rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\jp\zh1.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <tr>
+        <td  style="text-align: left;">
+          <details>
+            <summary>Lyrics</summary>
+            <div class="lyrics-content">
+              <span class="lyrics-section">《昨日的海》</span>
+            <span class="lyrics-section">[Verse]</span>
+            那片海 是我们曾一起看过的蓝
+            脚印沿着潮水慢慢被遗忘
+            你说未来 要比梦还长
+            如今只剩风声在回响
+
+            <span class="lyrics-section">[Chorus]</span>
+            昨日的海 不再澎湃
+            心事被浪潮掩埋
+            你走的那天 没有云彩
+            我学会了不再期待
+
+            <span class="lyrics-section">[Verse]</span>
+            孤单的码头还残留你的发带
+            我却连拥抱都来不及安排
+            你的背影 融进了雾霭
+            像这片海 再也找不回来
+
+            <span class="lyrics-section">[Chorus]</span>
+            昨日的海 不再澎湃
+            心事被浪潮掩埋
+            你走的那天 没有云彩
+            我学会了不再期待
+
+            <span class="lyrics-section">[Chorus]</span>
+            风停了 梦醒了
+            故事也终究褪色了
+            昨日的海 带走悲哀
+            留下我和影子相爱
+            再不会为谁而等待
+            也不再为爱而更改
+            </div>
+          </details>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Suno\jp\suno-jp-zh2-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Mureka\ko\Mureka-ko-zh2-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\levo-icassp\levo-zh-zh2.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\diff-icassp\en\diff-en-zh2-Rock-electronic-Electronic-rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\ace-step-icassp\en\zh2.mp3" type="audio/wav">
+          </audio>
+        </td>
+        
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\yue_icassp\en\yue--zh2-electronic-Classical-R&B-Electronic.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\ko\zh2.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <tr>
+        <td  style="text-align: left;">
+          <details>
+            <summary>Lyrics</summary>
+            <div class="lyrics-content">
+              <span class="lyrics-section">《余温》</span>
+            <span class="lyrics-section">[Verse]</span>
+            咖啡冷了 你没说话
+            只剩我听雨声回答
+            眼神交错 却不再有牵挂
+            我们怎么会走成这样
+
+            <span class="lyrics-section">[Chorus]</span>
+            你的余温在指尖徘徊
+            我试着不让眼泪掉下来
+            一句再见 没有对白
+            就足以让我崩坏
+
+            <span class="lyrics-section">[Verse]</span>
+            回忆像钟表滴答在拨快
+            每一次心跳都在重来
+            爱不是说停就能放开
+            原谅我还在原地等待
+
+            <span class="lyrics-section">[Chorus]</span>
+            你的余温在指尖徘徊
+            我试着不让眼泪掉下来
+            一句再见 没有对白
+            就足以让我崩坏
+
+            <span class="lyrics-section">[Chorus]</span>
+            我想说的话 卡在心怀
+            你却早已走得好坦率
+            余温不再 我也释怀
+            梦醒以后别再重来
+
+            </div>
+          </details>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Suno\ko\Suno-ko-zh3-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Mureka\ko\Mureka-ko-en3-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\levo-icassp\levo-jp-en3.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\diff-icassp\en\diff-en-zh3-Electronic-rock-R&B-Rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\ace-step-icassp\en\zh3.mp3" type="audio/wav">
+          </audio>
+        </td>
+        
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\yue_icassp\en\yue--zh3-electronic-R&B-Folk-Electronic.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\zh\zh3.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <tr>
+        <td  style="text-align: left;">
+          <details>
+            <summary>Lyrics</summary>
+            <div class="lyrics-content">
+              <span class="lyrics-section">《平行线》</span>
+            <span class="lyrics-section">[Verse]</span>
+            我们像两条线 不曾交汇
+            却在同一片夜色里沉醉
+            你笑的模样如此遥远
+            却总在我梦中出现
+
+            <span class="lyrics-section">[Chorus]</span>
+            我们是平行线 永不重叠
+            彼此靠近 却始终遥远
+            爱在心里 没人能看见
+            只能擦肩 却不能相牵
+
+            <span class="lyrics-section">[Verse]</span>
+            时光悄悄改变了从前
+            回忆却还停在初见
+            如果说爱不能被实现
+            为何命运还让我们遇见
+
+            <span class="lyrics-section">[Chorus]</span>
+            我们是平行线 永不重叠
+            彼此靠近 却始终遥远
+            爱在心里 没人能看见
+            只能擦肩 却不能相牵
+
+            <span class="lyrics-section">[Chorus]</span>
+            某一刻我想奋力改变
+            却发现终点都已写满誓言
+            平行的你我 不再妄言
+            至少在梦里 还能遇见
+
+            </div>
+          </details>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Suno\en\Suno-en-zh4-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Mureka\zh\Mureka-zh-zh4-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\levo-icassp\levo-en-zh4.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\diff-icassp\en\diff-en-zh4-rock-Electronic-Classical-R&B.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\ace-step-icassp\en\zh4.mp3" type="audio/wav">
+          </audio>
+        </td>
+        
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\yue_icassp\en\yue--zh4-rock-Pop-electronic-Rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\zh\zh4.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <tr>
+        <td  style="text-align: left;">
+          <details>
+            <summary>Lyrics</summary>
+            <div class="lyrics-content">
+             <span class="lyrics-section">《风中纸鸢》</span> 
+            <span class="lyrics-section">[Verse]</span>
+            风轻轻吹起我心中的线
+            纸鸢飞远 你我遥相牵
+            那年夏天 还历历在眼前
+            你的笑是最美的画面
+
+            <span class="lyrics-section">[Chorus]</span>
+            风中的纸鸢 飘向蓝天
+            你说梦想就在那边
+            我紧握线 不让它走远
+            却抵不过命运的风偏
+
+            <span class="lyrics-section">[Verse]</span>
+            你渐行渐远 像断线的缘
+            我追不上你留下的光线
+            泪水洒落 那一段画面
+            随风飘散 不见
+
+            <span class="lyrics-section">[Chorus]</span>
+            风中的纸鸢 飘向蓝天
+            你说梦想就在那边
+            我紧握线 不让它走远
+            却抵不过命运的风偏
+
+            <span class="lyrics-section">[Chorus]</span>
+            如果风再温柔一点
+            你是否还会停在我身边
+            纸鸢落地 梦未搁浅
+            你在我心里不曾走远
+
+            </div>
+          </details>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Suno\zh\suno-zh-zh5-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\Mureka\zh\Mureka-zh-zh5-1.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\levo-icassp\levo-zh-zh5.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\diff-icassp\en\diff-en-zh5-electronic-Rock-Electronic-rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\ace-step-icassp\en\zh5.mp3" type="audio/wav">
+          </audio>
+        </td>
+
+        <td width="10%" class="audio-compare" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\yue_icassp\en\yue--zh5-rap-Folk-R&B-Rock.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <td width="10%" class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\en\zh5.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      
+      
+            </tbody>
+            
+        </table>
+     </div>
+  </div>
+</section>
+
+<section id="audioprompt" class="hero">
+  <div class="hero-body">
+    <div class="container is-fluid">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Timbre Control</h2>
+        </div>
+      </div>
+      <div class="columns is-centered is-gapless has-text-centered">
+        <div class="column is-full">
+          <table class="table" style="width: 100%; background-color: transparent;">
+          <thead>
+            <tr>
+              <th align="center"><strong></span>Vocal Prompt</strong></th> <!-- Changed order -->
+              <th align="center"><strong></span>Lyrics</strong></th> <!-- Changed order -->
+              <th align="center"><strong><span class="icon"><i class="fas fa-magic"></i></span>s2s</strong></th>
+            </tr>
+          </thead>
+          <tbody>
+      <tr>
+        <!-- Vocal Prompt column -->
+        <td style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\prompt_audios\en.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <!-- Lyrics column -->
+        <td width="40%" style="text-align: left; vertical-align: middle; padding: 10px;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold; text-align:center; display:block; margin-bottom: 10px;">Lyrics</summary>
+            <div class="lyrics-content" style="white-space: pre-wrap; text-align: center;">
+               <span class="lyrics-section">"Ocean Whisper"</span>
+              <span class="lyrics-section">[Verse]</span>
+              Whispers of the ocean in the night's embrace
+              Stars reflected mirror like, across your face
+              Waves of memories, we can't erase
+              A silence we both chose to chase
+
+              <span class="lyrics-section">[Chorus]</span>
+              We sail with dreams, on the tide's line
+              Heartbeats calm, where the moonlight shines
+              Through the storm and waves' dance
+              I'd hold you close by chance
+
+              <span class="lyrics-section">[Verse]</span>
+              The horizon shared by morning's light
+              Promises kept in the curtain of night
+              In this endless sea, we find our way
+              Where the compass points to another day
+
+              <span class="lyrics-section">[Chorus]</span>
+              We sail with dreams, on the tide's line
+              Heartbeats calm, where the moonlight shines
+              Through the storm and waves' dance
+              I'd hold you close by chance
+            </div>
+          </details>
+        </td>
+        <!-- s2s column -->
+        <td class="audio-overview" style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\stage2_model\en\en6.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <!-- Repeat for other entries with adjusted styles -->
+       <tr>
+        <!-- Vocal Prompt column -->
+        <td style="text-align: center; vertical-align: middle; padding: 10px;">
+          <!-- <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\prompt_audios\en.mp3" type="audio/wav">
+          </audio> -->
+        </td>
+        <!-- Lyrics column -->
+        <td width="40%" style="text-align: left; vertical-align: middle; padding: 10px;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold; text-align:center; display:block; margin-bottom: 10px;">Lyrics</summary>
+            <div class="lyrics-content" style="white-space: pre-wrap; text-align: center;">
+               <span class="lyrics-section">《落日邮递》</span>
+              <span class="lyrics-section">[Verse]</span>
+              你站在斜阳的尽头
+              风吹动你裙角温柔
+              信封里写满问候
+              却不敢说出口
+
+              <span class="lyrics-section">[Chorus]</span>
+              落日是你寄来的信
+              温暖我沉默的黎明
+              如果黄昏是归期
+              请你把我藏心底
+
+              <span class="lyrics-section">[Verse]</span>
+              时光是忘了归还的灯
+              映出我梦中的眼神
+              我们擦肩的每一分
+              都藏着未完的吻
+
+              <span class="lyrics-section">[Bridge]</span>
+              错过不是结局的签名
+              心跳还在默默回应
+              你未读的那封信
+              在我眼里，从未停
+              故事写成了风景
+              我愿等你，像黎明
+
+              <span class="lyrics-section">[Chorus]</span>
+              落日是你寄来的信
+              温暖我沉默的黎明
+              如果黄昏是归期
+              请你把我藏心底
+            </div>
+          </details>
+        </td>
+        <!-- s2s column -->
+        <td class="audio-overview" style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\stage2_model\en\zh6.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+
+      <tr>
+        <!-- Vocal Prompt column -->
+        <td style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\prompt_audios\ko.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <!-- Lyrics column -->
+        <td width="40%" style="text-align: left; vertical-align: middle; padding: 10px;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold; text-align:center; display:block; margin-bottom: 10px;">Lyrics</summary>
+            <div class="lyrics-content" style="white-space: pre-wrap; text-align: center;">
+            <span class="lyrics-section">"City Shadow"</span>
+            <span class="lyrics-section">[Verse]</span>
+            Neon signs flicker in the pouring rain
+            Your laughter echoes like a sweet refrain
+            Reflecting on the stories untold
+            Like mysteries the city lights unfold
+
+            <span class="lyrics-section">[Chorus]</span>
+            City shadow, running wild
+            Chasing dreams, like a restless child
+            Even if dawn turns to a sight
+            I'll follow you into the night
+
+            <span class="lyrics-section">[Verse]</span>
+            Lost in alleys, where time stands still
+            Moments captured against our will
+            In every glance, a secret shared
+            In every heartbeat, we dared
+
+            <span class="lyrics-section">[Bridge]</span>
+            Skyscrapers hum with quiet ache
+            We danced on streets we didn’t fake
+            A moment lost between the lights
+            But found again on endless nights
+
+            <span class="lyrics-section">[Chorus]</span>
+            City shadow, running wild
+            Chasing dreams, like a restless child
+            Even if dawn turns to a sight
+            I'll follow you into the night
+            </div>
+          </details>
+        </td>
+        <!-- s2s column -->
+        <td class="audio-overview" style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\stage2_model\ko\en7.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+
+      <!-- Repeat for other entries with adjusted styles -->
+       <tr>
+        <!-- Vocal Prompt column -->
+        <td style="text-align: center; vertical-align: middle; padding: 10px;">
+          <!-- <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\prompt_audios\en.mp3" type="audio/wav">
+          </audio> -->
+        </td>
+        <!-- Lyrics column -->
+        <td width="40%" style="text-align: left; vertical-align: middle; padding: 10px;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold; text-align:center; display:block; margin-bottom: 10px;">Lyrics</summary>
+            <div class="lyrics-content" style="white-space: pre-wrap; text-align: center;">
+             <span class="lyrics-section">《山雀》</span> 
+            <span class="lyrics-section">[Verse]</span>
+            山雀在清晨唱醒雾
+            你用微笑点亮屋
+            木窗边飘来炊烟舞
+            心像午后茶那么醇熟
+
+            <span class="lyrics-section">[Bridge]</span>
+            我愿变作一片叶
+            随你飞不问季节
+            每次回眸的瞬间
+            都种下一场雨前
+            你在笑我在看
+            整个世界变温软
+
+            <span class="lyrics-section">[Chorus]</span>
+            你是那只飞来的山雀
+            在我肩头唱出夏夜
+            风吹过松林又一遍
+            你眼神里有春天
+
+            <span class="lyrics-section">[Verse]</span>
+            我们绕过山径谈天
+            不在意时间多遥远
+            脚下踩着落叶的弦
+            每一步都像诗篇
+
+            <span class="lyrics-section">[Chorus]</span>
+            你是那只飞来的山雀
+            在我肩头唱出夏夜
+            风吹过松林又一遍
+            你眼神里有春天
+            </div>
+          </details>
+        </td>
+        <!-- s2s column -->
+        <td class="audio-overview" style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\stage2_model\ko\zh7.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+
+      <tr>
+        <!-- Vocal Prompt column -->
+        <td style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\prompt_audios\jp.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <!-- Lyrics column -->
+        <td width="40%" style="text-align: left; vertical-align: middle; padding: 10px;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold; text-align:center; display:block; margin-bottom: 10px;">Lyrics</summary>
+            <div class="lyrics-content" style="white-space: pre-wrap; text-align: center;">
+            <span class="lyrics-section">"Eternal Echo"</span>
+
+            <span class="lyrics-section">[Verse]</span>
+            Through whispers, your voice calls me near
+            In the stillness, your presence is clear
+            Shadows embrace, where we used to roam
+            This heart remains your eternal home
+
+            <span class="lyrics-section">[Bridge]</span>
+            The years may pass, the seasons turn
+            Yet still your name will softly burn
+            A symphony beneath my skin
+            Echoes loud where love had been
+
+            <span class="lyrics-section">[Chorus]</span>
+            Eternal echo, love's refrain
+            Timeless reason, no need for gain
+            Through the silent dawn and dusk
+            Feelings deep as ocean's gust
+
+            <span class="lyrics-section">[Verse]</span>
+            In dreams, your image vividly stays
+            Guides my path through life's maze
+            Whispers turned into a sweet serenade
+            Memories that never fade
+
+            <span class="lyrics-section">[Chorus]</span>
+            Eternal echo, love's refrain
+            Timeless reason, no need for gain
+            Through the silent dawn and dusk
+            Feelings deep as ocean's gust
+            </div>
+          </details>
+        </td>
+        <!-- s2s column -->
+        <td class="audio-overview" style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\stage2_model\jp\en8.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+
+      <!-- Repeat for other entries with adjusted styles -->
+       <tr>
+        <!-- Vocal Prompt column -->
+        <td style="text-align: center; vertical-align: middle; padding: 10px;">
+          <!-- <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\prompt_audios\en.mp3" type="audio/wav">
+          </audio> -->
+        </td>
+        <!-- Lyrics column -->
+        <td width="40%" style="text-align: left; vertical-align: middle; padding: 10px;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold; text-align:center; display:block; margin-bottom: 10px;">Lyrics</summary>
+            <div class="lyrics-content" style="white-space: pre-wrap; text-align: center;">
+            <span class="lyrics-section">《数码心跳》</span>
+            <span class="lyrics-section">[Verse]</span>
+            城市闪烁成了屏幕
+            你是我眼里的光速
+            快门记录每个片段
+            在云端留下温度
+
+            <span class="lyrics-section">[Chorus]</span>
+            数码心跳同步跳动
+            我们在虚拟中相拥
+            现实暂停，梦还鲜红
+            记忆永不设成空
+
+            <span class="lyrics-section">[Verse]</span>
+            你发来一个笑脸
+            我的世界随即翻篇
+            电流穿过指尖连接
+            一触就心动成线
+
+            <span class="lyrics-section">[Bridge]</span>
+            断电那刻才发现
+            我已习惯你的语言
+            每句简单的晚安
+            像程序写进我心间
+
+            <span class="lyrics-section">[Chorus]</span>
+            数码心跳同步跳动
+            我们在虚拟中相拥
+            现实暂停，梦还鲜红
+            记忆永不设成空
+            </div>
+          </details>
+        </td>
+        <!-- s2s column -->
+        <td class="audio-overview" style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\stage2_model\jp\zh8.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+
+      <tr>
+        <!-- Vocal Prompt column -->
+        <td style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\prompt_audios\zh.mp3" type="audio/wav">
+          </audio>
+        </td>
+        <!-- Lyrics column -->
+        <td width="40%" style="text-align: left; vertical-align: middle; padding: 10px;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold; text-align:center; display:block; margin-bottom: 10px;">Lyrics</summary>
+            <div class="lyrics-content" style="white-space: pre-wrap; text-align: center;">
+            <span class="lyrics-section">"Gilded Skies"</span>
+            <span class="lyrics-section">[Verse]</span>
+            Under gilded skies and fading light
+            We danced with dreams taking flight
+            Your promise was the wings to soar
+            In the night, forevermore
+
+            <span class="lyrics-section">[Chorus]</span>
+            Gilded skies, where hope resides
+            With every heartbeat that collides
+            A universe painted gold
+            Stories of love remain untold
+
+            <span class="lyrics-section">[Verse]</span>
+            With whispered stars overhead
+            In dreams of velvet where love spread
+            Your touch lingers on my skin
+            A place where the magic begins
+
+            <span class="lyrics-section">[Bridge]</span>
+            We carved our dreams in golden dust
+            Left behind what we thought we must
+            In every spark that lit the way
+            Your voice remains where night meets day
+
+            <span class="lyrics-section">[Chorus]</span>
+            Gilded skies, where hope resides
+            With every heartbeat that collides
+            A universe painted gold
+            Stories of love remain untold
+            </div>
+          </details>
+        </td>
+        <!-- s2s column -->
+        <td class="audio-overview" style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\stage2_model\zh\en9.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+
+      <!-- Repeat for other entries with adjusted styles -->
+       <tr>
+        <!-- Vocal Prompt column -->
+        <td style="text-align: center; vertical-align: middle; padding: 10px;">
+          <!-- <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\prompt_audios\en.mp3" type="audio/wav">
+          </audio> -->
+        </td>
+        <!-- Lyrics column -->
+        <td width="40%" style="text-align: left; vertical-align: middle; padding: 10px;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold; text-align:center; display:block; margin-bottom: 10px;">Lyrics</summary>
+            <div class="lyrics-content" style="white-space: pre-wrap; text-align: center;">
+            <span class="lyrics-section">《星火少年》</span>
+            <span class="lyrics-section">[Verse]</span>
+            擦破手掌也不后退
+            梦想写在废纸背
+            谁说青春只能浪费
+            我偏要它光彩生辉
+
+            <span class="lyrics-section">[Chorus]</span>
+            我们是燃烧的星火
+            点亮黑夜不闪躲
+            哪怕明天不承诺
+            也要燃尽这一刻
+
+            <span class="lyrics-section">[Verse]</span>
+            破旧球鞋踩出节奏
+            笑着追赶命运的狗
+            不认输是我最后的自由
+            哪怕遍体鳞伤也走
+
+            <span class="lyrics-section">[Bridge]</span>
+            汗水滴落在吉他弦
+            唱出不安却也真切
+            那些被忽略的瞬间
+            我们把它变成诗篇
+            不问结局会不会美
+            只管热血沸腾这一夜
+
+            <span class="lyrics-section">[Chorus]</span>
+            我们是燃烧的星火
+            点亮黑夜不闪躲
+            哪怕明天不承诺
+            也要燃尽这一刻
+            </div>
+          </details>
+        </td>
+        <!-- s2s column -->
+        <td class="audio-overview" style="text-align: center; vertical-align: middle; padding: 10px;">
+          <audio controls="" style="display: block; margin: 0 auto;">
+            <source src="static\audios_sample\stage2_model\zh\zh9.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      </tbody>
+      </table>
+  </div>
+</section>
+
+
+<section id="textprompt" class="hero">
+  <div class="hero-body">
+    <div class="container is-fluid">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Text-based Control</h2>
+        </div>
+      </div>
+      <div class="columns is-centered is-gapless has-text-centered">
+        <div class="column is-full">
+          <table class="table" style="width: 100%; background-color: transparent;">
+          <thead>
+            <tr>
+              <th align="center"><strong></span>Lyrics</strong></th>
+              <th align="center"><strong></span>Genres</strong></th>
+              <th align="center"><strong><span class="icon"><i class="fas fa-magic"></i></span>s2s</strong></th>
+            </tr>
+          </thead>
+          <tbody>
+      
+      <tr>
+        <td width="30%" style="text-align: left;"> <span class="icon"><i class="fas fa-magic"></i></span>English</td>
+      </tr>
+      <tr>
+        <td width="30%" style="text-align: left;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold;">Lyrics</summary>
+            <div class="lyrics-content">
+            <span class="lyrics-section">"Wandering Souls"</span>
+            <span class="lyrics-section">[Verse]</span>
+            Wandering souls on paths untread
+            Lingering in places we once fled
+            Echoes of laughter fill the air
+            A bond deeper than despair
+
+            <span class="lyrics-section">[Chorus]</span>
+            Wandering souls, forever stray
+            Through the night, we find our way
+            In realms where shadows blend
+            Our spirits never end
+
+            <span class="lyrics-section">[Verse]</span>
+            Through the forest where night blooms
+            Under starlit, quiet rooms
+            Embrace the moment without fear
+            Knowing you'll always be near
+
+            <span class="lyrics-section">[Chorus]</span>
+            Wandering souls, forever stray
+            Through the night, we find our way
+            In realms where shadows blend
+            Our spirits never end
+            </div>
+          </details>
+        </td>
+        <td style="text-align: left;">soul,chill,indie pop,ambient,experimental,pop</td>
+        <td class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\en\en10.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <tr>
+        <td width="30%" style="text-align: left;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold;">Lyrics</summary>
+            <div class="lyrics-content">
+            <span class="lyrics-section">"Starlit Nights"</span>
+            <span class="lyrics-section">[Verse]</span>
+            Beneath the stars, we lie awake,
+            The universe is ours to take.
+            A soft breeze whispers through the trees,
+            As we float on endless seas.
+
+            <span class="lyrics-section">[Chorus]</span>
+            Starlit nights, we’re lost in space,
+            In your eyes, I find my place.
+            Every moment feels so right,
+            In your arms on starlit nights.
+
+            <span class="lyrics-section">[Verse]</span>
+            The world fades into a quiet dream,
+            A glow of silver in the stream.
+            We don’t need a map or guide,
+            With you, I feel alive inside.
+
+            <span class="lyrics-section">[Chorus]</span>
+            Starlit nights, we’re lost in space,
+            In your eyes, I find my place.
+            Every moment feels so right,
+            In your arms on starlit nights.
+            </div>
+          </details>
+        </td>
+        <td style="text-align: left;">easy listening,70s,indie pop,chill.</td>
+        <td class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\wangfei\en12.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      <tr>
+        <td width="30%" style="text-align: left;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold;">Lyrics</summary>
+            <div class="lyrics-content">
+            <span class="lyrics-section">"Echoes of Yesterday"</span>
+            <span class="lyrics-section">[Verse]</span>
+            We used to dance in the pouring rain,
+            Chasing the thunder, hiding the pain.
+            But the memories slip through our hands,
+            Like grains of sand in distant lands.
+
+            <span class="lyrics-section">[Chorus]</span>
+            Echoes of yesterday, calling my name,
+            I still feel the fire, but nothing’s the same.
+            The past is a ghost that haunts the day,
+            I’m chasing echoes, I can’t break away.
+
+            <span class="lyrics-section">[Verse]</span>
+            You’re just a shadow in my mind,
+            A faded picture I can’t find.
+            But every time I close my eyes,
+            I hear your voice, I see your lies.
+
+            <span class="lyrics-section">[Chorus]</span>
+            Echoes of yesterday, calling my name,
+            I still feel the fire, but nothing’s the same.
+            The past is a ghost that haunts the day,
+            I’m chasing echoes, I can’t break away.
+            </div>
+          </details>
+        </td>
+        <td style="text-align: left;">indie rock,party,classic rock,Progressive rock,80s.</td>
+        <td class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\foolgarden\en13.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+      
+      <tr>
+        <td width="30%" style="text-align: left;"> <span class="icon"><i class="fas fa-magic"></i></span>Chinese</td>
+      </tr>
+      <tr>
+        <td width="30%" style="text-align: left;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold;">Lyrics</summary>
+            <div class="lyrics-content">
+            <span class="lyrics-section">《星尘》</span>  
+            <span class="lyrics-section">[Verse]</span>
+            夜空洒落无尽光点
+            像是你眼神的侧脸
+            在时间的缝隙之间
+            我们化作星尘相连
+
+            <span class="lyrics-section">[Chorus]</span>
+            星尘坠落爱在漂泊
+            带我穿越无数银河
+            哪怕明日化为虚无
+            此刻依然闪烁
+
+            <span class="lyrics-section">[Verse]</span>
+            虚拟与现实交织
+            在那片星空中我看见了你
+            我们的灵魂在流动
+            在那无尽的光辉中我们融为一体
+
+            <span class="lyrics-section">[Chorus]</span>
+            星尘坠落爱在漂泊
+            带我穿越无数银河
+            哪怕明日化为虚无
+            此刻依然闪烁
+            </div>
+          </details>
+        </td>
+        <td style="text-align: left;">jazz,Mellow,70s,indie pop,folk,House.</td>
+        <td class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\wangfei\zh14.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+
+      <tr>
+        <td width="30%" style="text-align: left;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold;">Lyrics</summary>
+            <div class="lyrics-content">
+          <span class="lyrics-section">《流沙》</span>
+          <span class="lyrics-section">[Verse]</span>
+          手心里的温度逐渐淡
+          像流沙悄然散
+          曾经的誓言随风远
+          只剩回声缠绵
+
+          <span class="lyrics-section">[Chorus]</span>
+          爱像流沙越握越滑
+          越想留住越挣扎
+          若一切注定成空话
+          请让我记住你眼眸的刹那
+
+          <span class="lyrics-section">[Verse]</span>
+          我们曾走过那条老街
+          每一块石板都带着你的影子
+          你微笑的模样依然清晰
+          但我知道你已经离去
+
+          <span class="lyrics-section">[Chorus]</span>
+          爱像流沙越握越滑
+          越想留住越挣扎
+          若一切注定成空话
+          请让我记住你眼眸的刹那
+          </details>
+        </td>
+        <td style="text-align: left;">catchy,happy,acoustic,easy listening,soul,rock.</td>
+        <td class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\foolgarden\zh13.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+
+      <tr>
+        <td width="30%" style="text-align: left;">
+          <details>
+            <summary style="cursor:pointer;font-weight:bold;">Lyrics</summary>
+            <div class="lyrics-content">
+            <span class="lyrics-section">《破晓》</span>  
+            <span class="lyrics-section">[Verse]</span>
+            黑夜曾将我埋没
+            孤独在胸口翻涌
+            可心中火焰未曾灭
+            一步一步点亮前方的夜
+
+            <span class="lyrics-section">[Chorus]</span>
+            破晓时刻我们高歌
+            撕裂阴霾冲破沉默
+            再多伤痕也是勋章
+            光会在心中绽放
+
+            <span class="lyrics-section">[Verse]</span>
+            那曾迷茫的方向
+            如今已是我们的家
+            每一滴汗水洒下
+            都换来未来的光芒
+
+            <span class="lyrics-section">[Bridge]</span>
+            越过山巅跨过大海
+            无所畏惧脚步坚定
+            我们曾经流过的泪
+            将是明天最耀眼的星
+
+            <span class="lyrics-section">[Chorus]</span>
+            破晓时刻我们高歌
+            撕裂阴霾冲破沉默
+            再多伤痕也是勋章
+            光会在心中绽放
+            </div>
+          </details>
+        </td>
+        <td style="text-align: left;">indie pop,House,blues,soul,ambient,pop.</td>
+        <td class="audio-overview" style="text-align: center;">
+          <audio controls="">
+            <source src="static\audios_sample\stage2_model\jiasiding\zh12.mp3" type="audio/wav">
+          </audio>
+        </td>
+      </tr>
+
+      
+            </tbody>
+        </table>
+  </div>
+</section>
