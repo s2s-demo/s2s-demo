@@ -41,7 +41,7 @@
     <div class="container  is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title">S2S: Sentence-to-Segment Learning in LLM-Driven Song Generation via Post-Hoc Chain-of-Thought</h1>
+          <h1 class="title is-1 publication-title">S2S: Sentence-to-section Training with Multi-task Learning for LLM-Driven Song Generation</h1>
         </div>
       </div>
     </div>
@@ -53,7 +53,7 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            Recent advances in song generation show significant progress, yet producing long-form, melodious songs remains challenging due to (1) high computational cost, (2) maintaining long-form coherence and controllability, and (3) limited data resources. To address these, we propose a large language model(LLM)-based framework with a novel two-stage training strategy that progresses from sentence-level to segment-level learning. This approach enables the model to first master fundamental singing ability before advancing to musicality. Segmenting full songs into sentence- and segment-level units shortens modeling sequences, thus reducing training complexity. Remarkably, using only 0.5 million training songs, our method generates melodious and coherent songs with reliable timbre consistency and text controllability. Furthermore, we introduce a post-hoc chain-of-thought(PHCoT) mechanism that enhances alignment with lyrical and timbre prompts without increasing extra inference cost. Experiments demonstrate superior musicality and timbre controllability compared to open-source baselines. Ablation studies validate the effectiveness of the post-hoc design. 
+            Recent advances in song generation show significant progress, yet directly modeling full songs end-to-end remains challenging due to long audio sequences, limited training data, and difficulty in aligning lyrics and vocals. To address these, we propose a large language model (LLM)-based framework with a novel two-stage training strategy that progresses from sentence-level to section-level. This approach allows the model to first acquire fundamental singing skills before progressing to higher-level musicality. By segmenting songs into shorter units and reconstructing generation at multiple granularities, it reduces sequence length, better exploits the data, and improves training efficiency. Compared to systems that require millions of training samples, our method generates musically harmonious and pleasing songs using only 0.5 million training songs. Furthermore, leveraging multi-task learning, we incorporate vocal and lyric fields as auxiliary training objectives, which further enhance the model’s ability to follow timbre and lyrics without incurring additional inference overhead. Experiments demonstrate superior musicality and timbre controllability compared to open-source baselines. Ablation studies validate the effectiveness of our designs.
           </p>
         </div>
 
